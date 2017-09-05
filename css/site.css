@@ -1,0 +1,12 @@
+html {
+	font-family: 'Fantasque Sans Mono';
+}
+body {
+	position: fixed;
+
+	left: 50%;
+	height: 200px;
+	width: 1000px;
+	margin-top: 50px;
+	margin-left: -500px;
+}

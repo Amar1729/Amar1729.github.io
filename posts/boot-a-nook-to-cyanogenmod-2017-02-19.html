@@ -1,0 +1,58 @@
+<head>
+    <!-- Bootstrap Core CSS --
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+
+    <!-- Custom CSS --
+    <link rel="stylesheet" href="../css/clean-blog.css">
+
+    <!-- Pygments Github CSS --
+    <link rel="stylesheet" href="../css/syntax.css">
+    -->
+
+<!--
+div {
+    height: 200px;
+    width: 400px;
+    background: black;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -100px;
+    margin-left: -200px;
+}
+-->
+
+<link rel="stylesheet" href="../css/site.css">
+
+</head>
+
+<body>
+
+<h1 id="booting-cyanogenmod-on-a-nook-hd">Booting Cyanogenmod on a Nook HD+</h1>
+
+<p>Full disclosure: this post is meant to serve as a recording of the steps I used for this process. I’ve had SD cards die on me so I’ve had to repeat this process 3 times by now.<br />
+Another disclosure: Be careful about performing any of this stuff on your device! Installing custom ROMs or rooting will void your warranty so make sure you read a full tutorial before you start (so you know what you’re getting into) and backup your data safely.</p>
+
+<p>Note that you should NOT unzip the CM or gapps files you find - the cyanobootloader installs these programs from a zip file. The recovery image, however, should be unzipped until its extensions is <code>.img</code>.</p>
+
+<p>User Amaces offers a shared Box folder for download of lots of relevant files:<br />
+* <a href="https://notredame.app.box.com/s/26a4bygh9vbaw7jjq08xr5evomvaw5ww">general files</a>
+* <a href="https://notredame.app.box.com/s/26a4bygh9vbaw7jjq08xr5evomvaw5ww/1/3332706778">ovation-specific</a>, for Nook HD+ (hummingbird is for the Nook HD)</p>
+
+<p>I used CM10.1 on my Nook HD+ (even though the current version is CM11) because I had slightly better speed using CM10.</p>
+
+<p>Thanks to XDA users Hashcode and verygreen, who provided writeups and files for rooting the Nook! I used the <a href="https://redirect.viglink.com/?format=go&amp;jsonp=vglnk_148728533905021&amp;key=f0a7f91912ae2b52e0700f73990eb321&amp;libId=iz7wz9gl01000n4o000DLb0nh9b0tbp3&amp;loc=https%3A%2F%2Fforum.xda-developers.com%2Fshowthread.php%3Ft%3D2600572&amp;v=1&amp;out=http%3A%2F%2Fnook.rootshell.ru%2Fhd%2Fsdcard-cwm-early9.img.gz&amp;title=%5BNook%20HD%2FHD%2B%5D%20EMMC%20CM11%20install%20-%20updated%2011%E2%80%A6%20%7C%20Barnes%20%26%20Noble%20Nook%20HD%2C%20HD%2B&amp;txt=initial%20sdcard%20image%20for%20ovation">recovery image</a> from this <a href="https://forum.xda-developers.com/showthread.php?t=2600572">this XDA thread</a> (which I’ll also include below in case of a broken link), but downloaded CM10 and gapps from their respective download pages. I’ll also link the specific - but outdated - versions I used. On this post, the recovery image is the “initial sdcard image for ovation” in the “for completeness” part of the tutorial. The recovery image is the one part of this process that’s the most difficult, since you have to find a properly-working image for your device. It doesn’t help that a lot of the links turn up dead since the HD+ is an older device at this point. I also keep finding a bunch of broken recovery images: a proper one for the Nook is about 120 MB, but a lot of the ones you may find are only 10MB.</p>
+
+<p>First you’ll have to write the recovery image to your SD card. This can be done with Windisk32Imager if you’re on Windows (yeah you’ll need some bloatware) or with the simple <code>dd</code> command if you’re on Mac or Linux. On a *nix system, you’ll have to unmount the disk first , and then <code>dd</code> the image like this:<br />
+<code>dd bs=4m if=recovery.img of=/dev/rdisk3	# the r specifies "raw" - not required but helps speed up the process</code></p>
+
+<p>I used <code>adb</code> to push the cm10 and gapps image to my Nook, but I think (?) you can also load them onto the SD card after creating the recovery image. Then, you shut the Nook off, insert the SD card, and boot it up. You should be presented with the Cyanobootloader trying to boot into the recovery SD.</p>
+
+<p>Once the Nook boots into recovery, you’ll want to make a backup of your system. When I tried it first, the <code>backup and restore</code> process kept failing for me, so I just went ahead with the install anyway. You can go to <code>install from zip</code> and navigate to the location where you saved the cm and gapps zip files. For me, I chose <code>install from /emmc</code> and navigated to the Downloads folder of the original Nook OS; you can also choose <code>install from /sdcard</code> if you loaded the files there. I initially tried <code>install zip from sideload</code> but for some reason <code>adb</code> never managed to establish a proper sideload session, so I couldn’t do that either. Once you’ve installed the cm image, go ahead and install gapps and reboot your Nook!</p>
+
+<p>Hopefully, when cyanoboot intercepts the regular boot order, it should now inform you that you are “booting Cyanogenmod from SD”. The first boot will take a little while, but once you’re in you can just connect to WiFi and sign in to your Cyanogenmod and/or Google accounts (if you want). Once you’re done with that, enjoy your rooted Android tablet!</p>
+
+<p>TODO: add pictures</p>
+
+</body>
