@@ -8,6 +8,8 @@ I've taken part in a few CTF (Capture the Flag) challenges, and they like to inc
 
 Before getting into the usage of these tools, it is important to understand one thing: when cracking larger lists of (or more complex) passwords, it is important to use **wordlists** that you think address the problem well. Alongside that, the rules or masks provided by john/hashcat help with mutating the wordlists in efficient ways to guess and find symbol-ridden passwords.
 
+Another minor thing to note is that both tools try to store progres in a "potfile" - a textfile with previously-cracked hashes and their values - to prevent doing extra work. These potfiles are in `~/.hashcat/` or `~/.john`, and can be deleted if you want to force the tool to recalculate hashes you've cracked already.
+
 ## john the ripper
 
 I'll mention john the ripper here, but I've found it to be slightly less powerful than hashcat in general. However, it can be tougher to find good examples using hashcat. More info on `john` may come around in another post.
@@ -113,3 +115,15 @@ Approaching final keyspace - workload adjusted.
 ```
 
 Great! We've found the last two passwords we needed!
+
+After you're done, you can always use `--show` to see what's been done:
+
+```
+$ hashcat --show hc-shadow
+
+b632c55a33530d1433e29ffc09ba1151:Reddit
+40e2e28b099afa39c97619bd6dbaa44d:Omnisio917
+f45e8bd2abcd1a3a532e5caa26794a0f:Cr0c0d0c
+19daa434fdd91a9e492fbc10e9103d83:Docker591
+4f266e1da75659f61cd8ac8b8901fa13:Justin.tv
+```
