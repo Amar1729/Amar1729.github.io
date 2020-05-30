@@ -1,4 +1,4 @@
-[homepage](https://amar1729.github.io/)
+[homepage](https://amar1729.github.io/) - [github](https://github.com/Amar1729)
 
 # Posts
 
