@@ -22,6 +22,8 @@ insert_index () {
 }
 
 main () {
+    set -e
+
     local date
     date="$(date +%Y-%m-%d)"  # default date is today
 
@@ -52,12 +54,20 @@ main () {
         insert_index "$fname" "$date"
         $0 markdown/index.md
     fi
+
+    # i know, i know ...
+    # https://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags
+    site_header="$(grep -A1 "^<body class=\"container hack gruvbox-dark\">" index.html | tail -n1)"
+
     markdown "$1" \
         -t "${fname//-/ }" \
         -s css/gruvbox-dark.css \
         -s css/hack.css \
         | sed 's/^<body>$/<body class="container hack gruvbox-dark">/' \
         | sed "s/^\([[:space:]]*${LINK_TAG}.*\),\(.*\)/\1\">${LINK_TAG}\2/" \
+        | sed "/^<body class=\"container hack gruvbox-dark\">/a \\
+${site_header}
+" \
         > "$out"
 }
 
