@@ -2,12 +2,23 @@
 
 LINK_TAG='<link rel="stylesheet" href="'
 
-append_index () {
+insert_index () {
     name="$1"
     date="$2"
 
+    # making some assumptions about the format of index.md here
+    # but essentially we assume first 4 lines are the header
+    # rest of the lines are just bulleted list of links
+    # insert 'name' blog post at the fifth line
+
+    header="$(sed '1,5!d' markdown/index.md)"
+    posts="$(sed '1,4d' markdown/index.md)"
+
     link="[${name}](./${name}.html)"
+
+    echo "$header" > markdown/index.md
     echo "- $date - $link" >> markdown/index.md
+    echo "$posts" >> markdown/index.md
 }
 
 main () {
@@ -38,7 +49,7 @@ main () {
 
     if [[ "$fname" != "index" ]]; then
         # add this post to index.md, and regenerate index.html
-        append_index "$fname" "$date"
+        insert_index "$fname" "$date"
         $0 markdown/index.md
     fi
     markdown "$1" \
