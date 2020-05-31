@@ -24,8 +24,9 @@ insert_index () {
 main () {
     set -e
 
-    local date
+    local date dry
     date="$(date +%Y-%m-%d)"  # default date is today
+    dry=''  # default is NOT to --dry run
 
     while [[ $# -gt 1 ]]; do
         arg="$1"
@@ -33,6 +34,10 @@ main () {
         case "$arg" in
             --date)
                 date="$1"
+                shift
+                ;;
+            --dry)
+                dry=1
                 ;;
         esac
     done
@@ -49,7 +54,7 @@ main () {
     fname="$(basename "${fname%.md}")"
     out="${fname}.html"
 
-    if [[ "$fname" != "index" ]]; then
+    if [[ "$fname" != "index" && -z "$dry" ]]; then
         # add this post to index.md, and regenerate index.html
         insert_index "$fname" "$date"
         $0 markdown/index.md
