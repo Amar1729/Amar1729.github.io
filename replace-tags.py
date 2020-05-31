@@ -10,6 +10,14 @@ import shutil
 import sys
 
 
+def tag_to_html(tag: str) -> str:
+    return "".join([
+        "<a href=\"{}\">".format("./tag-{}.html".format(tag)),
+        "#{}".format(tag),
+        "</a>",
+    ])
+
+
 def main(content):
     for line in content.split("\n"):
         g = re.match(r"<p>~ tags : (.*)<\/p>", line.strip())
@@ -22,7 +30,8 @@ def main(content):
                 raise Exception("improper tags?: {}".format(line))
 
             tag_line = " * ".join(
-                "[{}](./tag-{}.html)".format("#{}".format(tag), tag)
+                # "[{}](./tag-{}.html)".format("#{}".format(tag), tag)  # this is markdown oops
+                tag_to_html(tag)
                 for tag in tags
             )
 
