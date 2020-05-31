@@ -342,6 +342,11 @@ p {
   margin: 0 auto;
   padding: 0 1rem;
 }
+.container img {
+    max-width: 50%;
+    height: auto;
+    margin-left: 25%;
+}
 .inner {
   padding: 1rem;
 }
