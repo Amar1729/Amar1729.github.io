@@ -68,3 +68,7 @@ No worries! Using something like [Pie Control](https://play.google.com/store/app
 I tried out live wallpapers at one point, but found they could sometimes be too much and didn't quite find the variety you can find with static wallpapers. Maybe it's better now. 
 
 Nova lets you easily backup your configuration under Settings > Backup and Import Settings. If I move lots of apps around, I'll back up Nova and save the resulting file to a folder my phone shares with my server so I'll have it on the next phone I use. 
+
+----
+
+~ tags : #ricing * #android

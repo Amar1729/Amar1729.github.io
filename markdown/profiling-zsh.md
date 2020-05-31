@@ -116,3 +116,7 @@ On the topic of lazy-loading, peep [[9]](#sources) - a plugin that helps you do 
 7. https://gist.github.com/ctechols/ca1035271ad134841284
 8. https://gist.github.com/Amar1729/294c6e310b191405bf8fceb72e96b399
 9. https://github.com/qoomon/zsh-lazyload
+
+----
+
+~ tags : #ricing * #zsh
