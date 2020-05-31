@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>profiling zsh</title>
+  <link rel="stylesheet" href="css/gruvbox-dark.css"><link rel="stylesheet" href="css/hack.css">
+</head>
+<body class="container hack gruvbox-dark">
+<p><a href="https://amar1729.github.io/">homepage</a> - <a href="https://github.com/Amar1729">github</a> - <a href="https://github.com/Amar1729/Amar1729.github.io">site code</a></p>
+<h1 id="speeding-up-zsh-startup">speeding up zsh startup</h1>
+<p><em>Sept 09 2019</em></p>
+<p>While <code>zsh</code> is a powerful upgrade to the bash shell, its learning curve can be daunting. As a result, lots of new users will find themselves following whatever looks prettiest or most popular in the way of &quot;getting zsh setup&quot; - and one of the loudest pieces of advice out there is to use <a href="https://github.com/ohmyzsh/ohmyzsh">ohmyzsh</a>.</p>
+<p>(at the risk of sounding alarmist ...)</p>
+<p><strong>do NOT use oh-my-zsh!</strong></p>
+<p>Oh-My-Zsh is a great project, but it ends up just bloating your zsh startup. Now if you only spawn a shell infrequently, or your primary editor is VSCode or Atom, it doesn&#39;t really matter how fast or slow your shell starts. But if you primarly use tmux+vim and your workflow regularly has you spawning and terminating shells to do simple one-off things, saving half a second of startup time feels like a huge improvement.</p>
+<p>The OMZ prompts are pretty, but they can make your REPL feel like molasses. Even worse, the ones rely on <a href="https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/git.zsh"><code>oh-my-zsh/lib/git.zsh</code></a> for Version Control System helper functions slow to crawl when you <code>cd</code> into any decently large or hierarchical git project. (For a neat fix to this problem, see <a href="#sources">[1]</a>).</p>
+<h2 id="alternatives-">alternatives ...</h2>
+<p>Before getting back to oh-my-zsh, I&#39;ll point out a neat dotfiles repo I found a while back (and in particular, the zsh configuration):</p>
+<ul>
+<li><a href="https://github.com/ThiefMaster/zsh-config/tree/master/zshrc.d">https://github.com/ThiefMaster/zsh-config/tree/master/zshrc.d</a></li>
+</ul>
+<p>You can check out the various files <code>ThiefMaster</code> (most well-commented) to see exactly what all settings you might like in your own .zshrc or .zshrc.d. I&#39;d encourage you to take a glance and use some of these settings as the basis for your own configurations.</p>
+<p>And the simplified theme I currently use (internal code roughly based of off the <a href="https://github.com/agnoster/agnoster-zsh-theme">agnoster theme</a>:</p>
+<ul>
+<li><a href="https://github.com/Amar1729/bash-extended">https://github.com/Amar1729/bash-extended</a></li>
+</ul>
+<h2 id="-and-workarounds">... and workarounds</h2>
+<p>As for Oh-My-Zsh - it is popular, in part, because it helps to provide some nice, sane defaults that zsh is missing. Well, if you are using a plugin manager like <a href="http://getantibody.github.io/">antibody</a> (highly recommended) you can strip out the settings/tweaks parts of OMZ easily:</p>
+<pre><code># ~/.zsh_plugins.txt
+robbyrussell/oh-my-zsh kind:zsh path:lib/completion.zsh
+robbyrussell/oh-my-zsh kind:zsh path:lib/history.zsh
+robbyrussell/oh-my-zsh kind:zsh path:lib/key-bindings.zsh
+</code></pre><p>This allows you to pull out the parts of omz that are really useful all-around settings, like options for more history, keybindings like <code>space</code> for history expansion or <code>\C-x\C-e</code> for opening the current line in your <code>$EDITOR</code>, and helpful zstyle completions and menu options for taking advantage of zsh&#39;s completion system.</p>
+<p>It <strong>also</strong> allows you to avoid sourcing the other <strong>16</strong> (currently) zsh files in <code>lib/</code> which you may never use! I don&#39;t need bzr or nvm functionality at all; <code>functions.zsh</code> and <code>git.zsh</code> are mainly helper functions for other omz-internal scripts or themes; and I don&#39;t need settings defined in <code>directories.zsh</code> when I&#39;ve already written them <a href="https://github.com/Amar1729/dotfiles/blob/a8ddd0ffd9f8464bd584f50da956b7b489e239fb/.zshrc#L53-L59">in my .zshrc</a> and use <a href="https://github.com/rupa/z">rupa/z</a> + <a href="https://github.com/Tarrasch/zsh-bd">Tarrasch/zsh-bd</a> + <a href="https://github.com/junegunn/fzf">junegunn/fzf</a> to move around.</p>
+<p>If you take a look at <a href="https://github.com/ohmyzsh/ohmyzsh/blob/master/oh-my-zsh.sh">oh-my-zsh&#39;s init script</a> you&#39;ll see that there are quite a few other files that may be sourced even though you don&#39;t really need them.</p>
+<h2 id="profiling">profiling</h2>
+<p>Lots of great blog posts have been written on profiling zsh startup times<a href="#sources">[2]</a><a href="#sources">[3]</a><a href="#sources">[4]</a><a href="#sources">[5]</a><a href="#sources">[6]</a>.</p>
+<p>For this section, I&#39;ll let those references stand, and just include a few snippets of my own I&#39;ve found helpful.</p>
+<pre><code># timing zsh startup quickly
+$ for i in {1..10}; do /usr/bin/time zsh -i -c &#39;&#39;; done
+</code></pre><pre><code># ~/.zshrc
+# source: 4,5,7
+
+# only run full compinit once a day - compinit -C does not run compaudit, whereas compinit does
+autoload -Uz compinit
+
+for dump in ~/.zcompdump(N.mh+24); do
+  compinit
+done
+
+compinit -C
+</code></pre><p><code>compaudit</code> is a part of the zsh completion system that will attempt to check whether there are unsafe paths/files in your <code>fpath</code> that it shouldn&#39;t load completions from. Initializing <code>compinit</code> will generally call <code>compaudit</code>, but it can be slow. From <a href="http://zsh.sourceforge.net/Doc/Release/Completion-System.html#Initialization">the zsh completion manpages</a> (&quot;20.2.1 Use of compinit&quot;):</p>
+<blockquote>
+<p>For security reasons compinit also checks if the completion system would use files not owned by root or by the current user, or files in directories that are world- or group-writable or that are not owned by root or by the current user. If such files or directories are found, compinit will ask if the completion system should really be used. To avoid these tests and make all files found be used without asking, use the option -u, and to make compinit silently ignore all insecure files and directories use the option -i. This security check is skipped entirely when the -C option is given.</p>
+</blockquote>
+<p>So we should make sure you use <code>compinit -C</code> for typical shell loads, and just <code>compinit</code> every once in a while.</p>
+<pre><code># lazy-load sdkman (a cli tool to help manage java/bulid system versions
+# source: 8
+
+# ~/.profile
+export SDKMAN_DIR=&quot;$HOME/.sdkman&quot;
+sdk () {
+    if [[ &quot;$(which sdk | wc -l)&quot; -le 10 ]]; then
+        unset -f sdk
+        source &quot;$SDKMAN_DIR/bin/sdkman-init.sh&quot;
+    fi
+    sdk &quot;$@&quot;
+}
+</code></pre><p>On the topic of lazy-loading, peep <a href="#sources">[9]</a> - a plugin that helps you do lazy-loading could help reduce your startup time even more.</p>
+<pre><code># and finally, my zsh startup time ... in the old days this was anywhere from ~0.50 to ~0.80
+/tmp $ for i in {1..10}; do /usr/bin/time zsh -i -c &#39;&#39;; done
+
+        0.15 real         0.08 user         0.05 sys
+        0.13 real         0.07 user         0.04 sys
+        0.13 real         0.07 user         0.04 sys
+        0.13 real         0.07 user         0.04 sys
+        0.14 real         0.07 user         0.05 sys
+        0.13 real         0.07 user         0.04 sys
+        0.14 real         0.08 user         0.05 sys
+        0.13 real         0.07 user         0.05 sys
+        0.16 real         0.08 user         0.06 sys
+        0.15 real         0.08 user         0.05 sys
+</code></pre><h2 id="sources">sources</h2>
+<ol>
+<li><a href="https://github.com/romkatv/powerlevel10k">powerlevel10k</a>, a prompt that uses a highly efficient <a href="https://github.com/romkatv/gitstatus">gitstatus</a> to provide fast VCS prompt updates</li>
+<li><a href="https://stevenvanbael.com/profiling-zsh-startup">https://stevenvanbael.com/profiling-zsh-startup</a></li>
+<li><a href="https://htr3n.github.io/2018/07/faster-zsh/">https://htr3n.github.io/2018/07/faster-zsh/</a></li>
+<li><a href="https://carlosbecker.com/posts/speeding-up-zsh/">https://carlosbecker.com/posts/speeding-up-zsh/</a></li>
+<li><a href="https://medium.com/@dannysmith/little-thing-2-speeding-up-zsh-f1860390f92">https://medium.com/@dannysmith/little-thing-2-speeding-up-zsh-f1860390f92</a></li>
+<li><a href="https://esham.io/2018/02/zsh-profiling">https://esham.io/2018/02/zsh-profiling</a></li>
+<li><a href="https://gist.github.com/ctechols/ca1035271ad134841284">https://gist.github.com/ctechols/ca1035271ad134841284</a></li>
+<li><a href="https://gist.github.com/Amar1729/294c6e310b191405bf8fceb72e96b399">https://gist.github.com/Amar1729/294c6e310b191405bf8fceb72e96b399</a></li>
+<li><a href="https://github.com/qoomon/zsh-lazyload">https://github.com/qoomon/zsh-lazyload</a></li>
+</ol>
+</body>
+</html>
