@@ -132,3 +132,7 @@ Session completed
 
 * https://www.4armed.com/blog/perform-mask-attack-hashcat/
 * https://countuponsecurity.files.wordpress.com/2016/09/jtr-cheat-sheet.pdf
+
+----
+
+~ tags : #ctf * #cracking

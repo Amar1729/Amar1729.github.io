@@ -28,3 +28,7 @@ I used `adb` (the Android Debug Bridge) to push the cm10 and gapps image to my N
 Once the Nook boots into recovery, you’ll want to make a backup of your system. When I tried it first, the backup and restore process kept failing for me, so I just went ahead with the install anyway. You can go to install from zip and navigate to the location where you saved the cm and gapps zip files. For me, I chose install from /emmc and navigated to the Downloads folder of the original Nook OS; you can also choose install from /sdcard if you loaded the files there. I initially tried install zip from sideload but for some reason adb never managed to establish a proper sideload session, so I couldn’t do that either. Once you’ve installed the cm image, go ahead and install gapps and reboot your Nook!
 
 Hopefully, when cyanoboot intercepts the regular boot order, it should now inform you that you are "booting Cyanogenmod from SD". The first boot will take a little while, but once you’re in you can just connect to WiFi and sign in to your Cyanogenmod and/or Google accounts (if you want). Once you’re done with that, enjoy your rooted Android tablet!
+
+----
+
+~ tags : #android
