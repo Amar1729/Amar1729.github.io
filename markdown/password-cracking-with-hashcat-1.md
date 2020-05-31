@@ -8,13 +8,13 @@ I've taken part in a few CTF (Capture the Flag) challenges, and they like to inc
 
 Before getting into the usage of these tools, it is important to understand one thing: when cracking larger lists of (or more complex) passwords, it is important to use **wordlists** that you think address the problem well. Alongside that, the rules or masks provided by john/hashcat help with mutating the wordlists in efficient ways to guess and find symbol-ridden passwords.
 
-Another minor thing to note is that both tools try to store progres in a "potfile" - a textfile with previously-cracked hashes and their values - to prevent doing extra work. These potfiles are in `~/.hashcat/` or `~/.john`, and can be deleted if you want to force the tool to recalculate hashes you've cracked already.
+Another minor thing to note is that both tools try to store progress in a "potfile" - a textfile with previously-cracked hashes and their values - to prevent doing extra work. These potfiles are in `~/.hashcat/` or `~/.john/`, and can be deleted if you want to force the tool to recalculate hashes you've cracked already.
 
 ## john the ripper
 
 I'll mention john the ripper here, but I've found it to be slightly less powerful than hashcat in general. However, it can be tougher to find good examples using hashcat. More info on `john` may come around in another post.
 
-When using `john`, it is highly recommended you use the community edition, normally referred to in package managers as `john-jumbo`.
+When using `john`, it is highly recommended you use the community edition with extra patches, normally referred to in package managers as `john-jumbo`.
 
 ## hashcat
 
