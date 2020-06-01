@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>styling firefox</title>
+  <link rel="stylesheet" href="css/gruvbox-dark.css"><link rel="stylesheet" href="css/hack.css">
+</head>
+<body class="container hack gruvbox-dark">
+<p><a href="https://amar1729.github.io/">homepage</a> - <a href="./tags.html">tags</a> - <a href="https://github.com/Amar1729">github</a> - <a href="https://github.com/Amar1729/Amar1729.github.io">site code</a></p>
+<h1 id="styling-firefox">styling firefox</h1>
+<p><em>Feb 12 2020</em></p>
+<p>Firefox has recently been making some changes to what extensions are allowed to do. As an end-user, the biggest changes I&#39;ve seen are that extensions can&#39;t write to the file system anymore and it is tougher for plugins to change to look of Firefox.</p>
+<p>Of course, if the internet&#39;s taught us anything, with enough time you can make anything look like anything.</p>
+<h2 id="current-config">current config</h2>
+<p>To cut straight to the chase, my <a href="https://github.com/Amar1729/dotfiles/tree/master/.config/mozilla">current ~/.config/mozilla</a> configuration is here, and the recent commits that touch that directory (retrieved with <code>git hist -- ~/.config/mozilla</code>):</p>
+<ul>
+<li><a href="https://github.com/Amar1729/dotfiles/commit/ab2712a">ab2712a</a> 2020-02-12 | ~ firefox: update userChrome, add notes on how to configure [Amar1729]</li>
+<li><a href="https://github.com/Amar1729/dotfiles/commit/e63be9f">e63be9f</a> 2020-02-10 | ~ firefox: update readme [Amar1729]</li>
+<li><a href="https://github.com/Amar1729/dotfiles/commit/a7b434e">a7b434e</a> 2020-02-10 | ~ firefox: update colorscheme [Amar1729]</li>
+<li><a href="https://github.com/Amar1729/dotfiles/commit/9c0c37b">9c0c37b</a> 2020-02-10 | + firefox: add minimal-functional-fox [Amar1729]</li>
+<li><a href="https://github.com/Amar1729/dotfiles/commit/672a35c">672a35c</a> 2020-02-10 | + firefox: add notes on styling firefox [Amar1729]</li>
+</ul>
+<p>If you prefer looking through configs yourself, have at it; for some more context, read on.</p>
+<h2 id="browser-restyling">browser restyling</h2>
+<p>Using <a href="https://github.com/mut-ex/minimal-functional-fox">minimal-functional-fox</a>, a patch to Firefox&#39;s userChrome, you can change how exactly the browser draws its titlebars, tabs, and assorted window borders. Controlling this lets you control how the &quot;window&quot; part of Firefox looks. Since I typically go for a minimal style, it makes sense to try to get all the cruft of a Firefox header out of the way.</p>
+<p>The default Firefox currently looks like this:</p>
+<p><img src="./images/styling-firefox-default-ffox.png" alt="default firefox"></p>
+<blockquote>
+<p>who needs default when you can waste time customizing</p>
+</blockquote>
+<p>The header is about 90px tall and has a very utilitarian, austere sort of look (in my opinion). I prefer having tabs a bit more rounded, and I&#39;d really like if the header could be shortened a bit so I have more space for the page content. I can also do away with display the bookmark bar entirely since I never jump from a currently-open page to a bookmark.</p>
+<p>So let&#39;s try this:</p>
+<p><img src="./images/styling-firefox-minimal-ffox.png" alt="custom firefox"></p>
+<blockquote>
+<p>customizable gradients? count me in</p>
+</blockquote>
+<p>Now the window header is shortened to 74px (WOW, 16px more! AMAZING!). It&#39;s not a huge improvement, but since I tile my windows and have browser windows taking up a quarter of the screen quite commonly, it really feels like I get more out of the page being displayed.</p>
+<p>The userChrome has also added some nice color to our tabs, and it&#39;s made the URL of the current tab more prominent that our list of tabs, which I like.</p>
+<h2 id="homepage">homepage</h2>
+<p>There are tons of custom homepages out there for firefox and deciding to find one you like can seem like a never-ending challenge. I feel like I&#39;ve settled (for now) on a pretty good one: <a href="https://github.com/zombieFox/nightTab">nightTab</a>. It&#39;s a beautiful, material-design-esque start page that lets you easily group bookmarks and import/export your settings. The homepage does a better job of showing it off, so I&#39;ll just include a snap of it on my machine:</p>
+<p><img src="./images/styling-firefox-nighttab.png" alt=""></p>
+<blockquote>
+<p>for a gui, this isn&#39;t so bad</p>
+</blockquote>
+<h2 id="stylus">stylus</h2>
+<p>If you haven&#39;t heard of <a href="https://addons.mozilla.org/en-US/firefox/addon/styl-us/">Stylus</a>, it&#39;s a classic browser plugin that lets you change the CSS style of arbitrary webpages. It&#39;s a nice complement to <a href="https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/">Greasemonkey</a>, a plugin that lets you customize websites with injected Javascript.</p>
+<p>Finding styles for different sites can feel like a bit of a scavenger hunt at times, but you can use <a href="https://userstyles.org/">https://userstyles.org/</a> for a decent jumping point.</p>
+<p>I use <a href="https://github.com/amar1729/dotfiles#browsers">a few styles</a> for different webpages, and a really nice one I&#39;ve found recently is <a href="https://github.com/Brettm12345/github-moonlight">github-moonlight</a>, which makes browsing GitHub much more pleasant.</p>
+<hr>
+<p>~ tags : <a href="./tag-ricing.html">#ricing</a></p>
+</body>
+</html>
