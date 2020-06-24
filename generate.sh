@@ -1,5 +1,13 @@
 #! /usr/bin/env bash
 
+# inputs: one markdown file and optional args (see main() argparsing)
+# - converts that md to html
+# - adds that file+date to index, and regens index
+# - get the site header from the index, and add it to our new post
+#
+# note - this script is pretty hacky, requires double-checking files afterward.
+# Also, have to run ./tag_gen.py to make sure tags are updated in resulting htmls.
+
 LINK_TAG='<link rel="stylesheet" href="'
 
 insert_index () {
