@@ -7,6 +7,8 @@
 #
 # note - this script is pretty hacky, requires double-checking files afterward.
 # Also, have to run ./tag_gen.py to make sure tags are updated in resulting htmls.
+# if new tags have been added, have to update tags.md and tags.html manually :/
+#  -> see tag_gen.get_tags_md
 
 LINK_TAG='<link rel="stylesheet" href="'
 
