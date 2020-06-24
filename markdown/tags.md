@@ -5,3 +5,4 @@
 * [cracking](./tag-cracking.html)
 * [ricing](./tag-ricing.html)
 * [zsh](./tag-zsh.html)
+* [python](./tag-python.html)
