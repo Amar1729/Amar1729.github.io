@@ -80,6 +80,61 @@ def parse_post(fname: str) -> Post:
     )
 
 
+def gen_index(env, posts: List[Post]):
+    """
+    Regenerate the index from our list of posts.
+    """
+    template = env.get_template("index.html")
+    header = env.get_template("layout.html")
+
+    result = template.render(
+        siteheader=header.render(name="index"),
+        posts=posts,
+    )
+
+    print("Rewriting index.html ...")
+    with open("index.html", "w") as f:
+        f.write(result)
+
+
+def gen_tags(env, posts: List[Post]):
+    """
+    Template and write all the tags files based on tags in posts.
+    tags.html should be sorted, with most recent tags at the top.
+    """
+    tags = []
+    for post in posts:
+        for tag in post.tags:
+            if tag not in tags:
+                tags.append(tag)
+
+    header = env.get_template("layout.html")
+
+    all_tmpl = env.get_template("tags.html")
+    result = all_tmpl.render(
+        siteheader=header.render(name="tags"),
+        tags=tags,
+    )
+
+    # write the all tags page
+    print("Rewriting tags.html ...")
+    with open("tags.html", "w") as f:
+        f.write(result)
+
+    # get each individual tag page
+    tag_tmpl = env.get_template("tag-tag.html")
+    for tag in tags:
+        result = tag_tmpl.render(
+            siteheader=header.render(name=tag),
+            tagname="#{}".format(tag),
+            posts=filter(lambda p: tag in p.tags, posts),
+        )
+
+        print("Rewriting tag-{}.html ...".format(tag))
+        with open("tag-{}.html".format(tag), "w") as f:
+            f.write(result)
+
+
 def read_posts():
     """
     Read the posts from markdown/.posts
@@ -97,15 +152,8 @@ def read_posts():
         autoescape=select_autoescape(["html"]),
     )
 
-    template = env.get_template("index.html")
-    header = env.get_template("layout.html")
-
-    result = template.render(
-        siteheader=header.render(name="index"),
-        posts=posts,
-    )
-
-    print(result)
+    gen_index(env, posts)
+    gen_tags(env, posts)
 
 
 if __name__ == "__main__":
