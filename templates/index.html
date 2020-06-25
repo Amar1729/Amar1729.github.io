@@ -6,6 +6,7 @@
 {% for post in posts %}
 <li>{{ post.date }} - <a href="./{{ post.name }}.html">{{ post.name }}</a></li>
 {% endfor %}
+{{ other|safe }}
 </ul>
 </body>
 </html>

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
+import mistune
+
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
@@ -87,9 +89,14 @@ def gen_index(env, posts: List[Post]):
     template = env.get_template("index.html")
     header = env.get_template("layout.html")
 
+    with open("markdown/other.md") as f:
+        content = f.read()
+    other = mistune.create_markdown(plugins=["url"]).parse(content)
+
     result = template.render(
         siteheader=header.render(name="index"),
         posts=posts,
+        other=other,
     )
 
     print("Rewriting index.html ...")
