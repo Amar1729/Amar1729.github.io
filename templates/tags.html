@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+{{ siteheader|safe }}
+<h1 id="tags-on-this-site">tags on this site</h1>
+<ul>
+{% for tag in tags %}
+<li><a href="./tag-{{ tag }}.html">{{ tag }}</a></li>
+{% endfor %}
+</ul>
+</body>
+</html>
