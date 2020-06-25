@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+{{ siteheader|safe }}
+<h1>{{ tagname }}</h1>
+<ul>
+{% for post in posts %}
+<li>{{ post.date }} - <a href="./{{ post.name }}.html">{{ post.name }}</a></li>
+{% endfor %}
+</ul>
+</body>
+</html>

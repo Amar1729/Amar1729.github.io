@@ -1,6 +1,6 @@
 # more password cracking
 
-*Oct 30 2017*
+*Oct 31 2017*
 
 Another example on using `john` and `hashcat` to crack passwords from a CTF challenge.
 

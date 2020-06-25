@@ -1,6 +1,6 @@
 # speeding up zsh startup
 
-*Sept 09 2019*
+*Sep 09 2019*
 
 While `zsh` is a powerful upgrade to the bash shell, its learning curve can be daunting. As a result, lots of new users will find themselves following whatever looks prettiest or most popular in the way of "getting zsh setup" - and one of the loudest pieces of advice out there is to use [ohmyzsh](https://github.com/ohmyzsh/ohmyzsh).
 
