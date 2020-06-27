@@ -35,17 +35,12 @@ main () {
     set -e
 
     local date dry
-    date="$(date +%Y-%m-%d)"  # default date is today
     dry=''  # default is NOT to --dry run
 
     while [[ $# -gt 1 ]]; do
         arg="$1"
         shift
         case "$arg" in
-            --date)
-                date="$1"
-                shift
-                ;;
             --dry)
                 dry=1
                 ;;
@@ -59,6 +54,10 @@ main () {
         "File does not exist: $1"
         exit 1
     fi
+
+    # attempt to parse the date from the file
+    date="$(python -c "import main; print(main.date_from_md('$fname'))")"
+    [[ -z "$date" ]] && echo "Could not parse date form file! stopping." && exit 1
 
     # fname is without extension; out is fname.html
     fname="$(basename "${fname%.md}")"
