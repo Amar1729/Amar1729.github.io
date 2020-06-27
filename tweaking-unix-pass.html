@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>tweaking unix pass</title>
+  <link rel="stylesheet" href="css/gruvbox-dark.css"><link rel="stylesheet" href="css/hack.css">
+</head>
+<body class="container hack gruvbox-dark">
+<p><a href="https://amar1729.github.io/">homepage</a> - <a href="./tags.html">tags</a> - <a href="https://github.com/Amar1729">github</a> - <a href="https://github.com/Amar1729/Amar1729.github.io">site code</a></p>
+<h1 id="qol-tweaks-for-unix-pass">QoL Tweaks for Unix PASS</h1>
+<p><em>Jun 18 2020</em></p>
+<p>With increasing frequency of corporate hacks and password dumps, using a password manager has become more and more important recently. While many &quot;password manager as a service&quot; tools like Dashlane or 1Password exist, there are also open-source options like <a href="https://keepass.info/">KeePass</a>, <a href="https://github.com/gopasspw/gopass">gopass</a>, and <a href="https://www.passwordstore.org/">pass</a>.</p>
+<p>I personally use <code>pass</code> to manage passwords. While there are many tutorials out there on setting up GPG keys, using <code>pass</code>, using its git integration, and using apps built for <code>pass</code>, this post focuses more on some of the minor &quot;quality of life&quot; tweaks I&#39;ve done to make using it easier.</p>
+<h2 id="fuzzy-find-nested-passwords">fuzzy-find nested passwords</h2>
+<p>I use a nested hierarchy to keep my passwords and sensitive codes somewhat organized:</p>
+<pre><code>$ pass list
+
+Password Store
+├── social
+│   ├── discord
+│   ├── irc
+│   └── keybase
+├── banks
+│   ├── bank1
+│   ├── cc1
+│   └── cc2
+
+/* snipped */
+</code></pre><p>But attempting to tab-complete for passwords when I don&#39;t immediately remember which directory they&#39;re in can be tedious. Enter <a href="https://github.com/junegunn/fzf">fzf</a>, a command-line fuzzy finder. If you&#39;re not using this already, you should check it out, but one of the things I used it for is fuzzy tab completion of passwords. Based off of a snippet in fzf&#39;s wiki, I dropped this snippet in a file sourced by my shell startup:</p>
+<pre><code># $XDG_CONFIG_HOME/fzf/fzf_aliases
+
+# pass completion suggested by @d4ndo (#362) (slightly modified)
+_fzf_complete_pass() {
+  _fzf_complete &#39;+m&#39; &quot;$@&quot; &lt; &lt;(
+    local pwdir=${PASSWORD_STORE_DIR-~/.password-store/}
+    find &quot;$pwdir&quot; -name &quot;*.gpg&quot; -print |
+        sed -e &quot;s#${pwdir}/\{0,1\}##&quot; |
+        sed -e &#39;s/\(.*\)\.gpg/\1/&#39;
+  )
+}
+</code></pre><p>And now I can simply use fzf&#39;s default trigger <code>**</code> for fuzzy tab-completion:</p>
+<pre><code>$ pass show gith**[TAB]
+
+$ pass show gith**
+&gt; gith
+  2/215
+&gt; backups/github1
+  social/github.com
+</code></pre><h2 id="prefer-pinentry-curses-for-cli-usage">Prefer <code>pinentry-curses</code> for CLI usage</h2>
+<p>Since I use <a href="https://github.com/browserpass/browserpass-extension"><code>browserpass</code></a> - which I highly recommend - for web page logins, I need <code>pass</code> to be able to query a GUI pinentry program for my master password (you need to enter this every time you query a password from your password store). However, many times I&#39;ll copy or show a password using the command-line, and in those cases I&#39;d prefer <code>pass</code> to fall back to using <code>pinentry-curses</code>, rather than a GUI pop-up.</p>
+<p>I found <a href="https://kevinlocke.name/bits/2019/07/31/prefer-terminal-for-gpg-pinentry/">this post</a> by Kevin Locke a while back detailing this problem. Relevant post text copied here:</p>
+<blockquote>
+<p>As a result of <a href="https://dev.gnupg.org/T799">Task 799</a>, GnuPG 2.08 and later pass the <code>PINENTRY_USER_DATA</code> environment<br>variable from the calling environment to gpg-agent to pinentry. The format of this variable<br>is not specified (and not used by any programs in the standard pinentry collection that I can<br>find). <a href="https://github.com/GPGTools/pinentry-mac">pinentry-mac</a> <a href="https://github.com/GPGTools/pinentry-mac/blob/v0.9.4/Source/AppDelegate.m#L78">assumes it is a comma-separated sequence of NAME=VALUE pairs with no quoting<br>or escaping</a> and <a href="https://github.com/GPGTools/pinentry-mac/pull/2">recognizes USE_CURSES=1 to control curses fallback</a>. I adopted this convention<br>for a simple pinentry script which chooses the UI based on the presence of <code>USE_TTY=1</code> in <code>$PINENTRY_USER_DATA</code>:</p>
+</blockquote>
+<p>The original post includes a script which I have slightly modified for my use on macOS:</p>
+<pre><code>#! /usr/bin/env bash
+
+# Based on:
+# https://kevinlocke.name/bits/2019/07/31/prefer-terminal-for-gpg-pinentry
+
+set -Ceu
+
+case &quot;${PINENTRY_USER_DATA-}&quot; in
+    *USE_TTY=1*)
+        exec /usr/local/bin/pinentry-curses &quot;$@&quot;
+        ;;
+    *)
+        # fallback
+        exec /usr/local/bin/pinentry-mac &quot;$@&quot;
+        ;;
+esac
+</code></pre><p>On Linux, similar to the original post, you would use <code>pinentry-x11</code> rather than <code>pinentry-mac</code> for the GUI fallback.</p>
+<p>Note - the paths may have to be edited somewhat if you&#39;ve installed these binaries to different locations.</p>
+<p>And to use it (re-copied for posterity from post):</p>
+<blockquote>
+<p>To use this script for pinentry:</p>
+<ol>
+<li>Save the script (e.g. as <code>~/bin/pinentry-auto</code>).</li>
+<li>Make it executable (<code>chmod +x pinentry-auto</code>).</li>
+<li>Add <code>pinentry-program /path/to/pinentry-auto</code> to <code>~/.gnupg/gpg-agent.conf</code>.</li>
+<li><code>export PINENTRY_USER_DATA=USE_TTY=1</code> in environments where prompting via TTY is desired (e.g. alongside <code>$GPG_TTY</code> in <code>~/.bashrc</code>).</li>
+</ol>
+</blockquote>
+<p>When testing <code>pass</code> with this updated pinentry, make sure to execute <code>gpgconf --kill gpg-agent</code> after editing <code>~/.gnupg/gpg-agent.conf</code>.</p>
+<h3 id="aside-writing-a-homebrew-formula">Aside: Writing a HomeBrew Formula</h3>
+<p>I like to have my tools and scripts easily installable, so I screwed around a little and made a homebrew formula for slightly easier install of this script on macOS.</p>
+<p>The <a href="https://github.com/Amar1729/homebrew-formulae/commit/ce19e14e61899ad5eb8b04669f35f4810af4413b">introductory commit</a> can be seen in my homebrew tap. This formula utilizes some common patterns for formulae, such as the use of <code>inreplace</code> and using the fully-qualified path of a formula with <code>#{Formula[&quot;pinentry&quot;].opt_bin}</code>.</p>
+<p>Check out homebrew&#39;s <a href="https://docs.brew.sh/Formula-Cookbook">formula cookbook</a> for more information, or take a look at the homebrew formula files - usually found in <code>$(brew --prefix)/Homebrew/Library/Taps/homebrew/homebrew-core/Formula</code>.</p>
+<hr>
+<p>~ tags : #ricing * #brew</p>
+</body>
+</html>
