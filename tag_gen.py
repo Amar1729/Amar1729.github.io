@@ -3,7 +3,8 @@
 """
 Given a file, find its tags (in a single line at the bottom of markdown).
 
-Update any tags-*.md files and regenerate them, or create them if necessary.
+Replace the tags in its final HTML format actual links (since I don't want
+to write them in the source markdown).
 """
 
 import os
@@ -71,41 +72,13 @@ def get_tags_md():
     pass
 
 
-def create_tags_md(tag: str, fname: str):
-    """
-    Create a tags markdown file
-
-    Create "tagfile" with "fname"
-    """
-    tagfile = os.path.join(
-        "markdown",
-        "tag-{}.md".format(tag.lstrip("#")),
-    )
-
-    with open(tagfile, "w") as f:
-        f.write("# ")
-        f.write(tag)
-        f.write("\n\n")
-        f.write("* [{}](./{})".format(re.sub(r'\.html$', '', fname), fname))
-
-
-def update_tags_md(tag: str, fname: str):
-    """
-    Update the tags md by inserting the new blog post at the top (recent on top).
-
-    Update "tagfile" with "fname"
-    """
-    tagfile = os.path.join(
-        "markdown",
-        "tag-{}.md".format(tag),
-    )
-
-    with open(tagfile, "a") as f:
-        f.write("* [{}](./{}.html)".format(fname, fname))
+def tag_text_to_ref(tag: str) -> str:
+    """ Convert a tag to an html href.  """
+    return '<a href="./tag-{}.html">{}</a>'.format(tag.lstrip("#"), tag)
 
 
 def reference_tag_line(tags: List[str]) -> str:
-    return "<p>~ tags : {}</p>".format(" * ".join(tags))
+    return "<p>~ tags : {}</p>".format(" * ".join(map(tag_text_to_ref, tags)))
 
 
 def parse_tags_from_file(fname: str):
@@ -132,13 +105,9 @@ def parse_tags_from_file(fname: str):
     if not tag_line:
         raise Exception("No tags found: {}".format(fname))
 
-    tags = [tag.strip() for tag in tag_line.group(1).split("*")]
+    print("tags found: {}".format(tag_line))
 
-    for tag in tags:
-        if os.path.exists("tag-{}.html".format(tag)):
-            update_tags_md(tag, fname)
-        else:
-            create_tags_md(tag, fname)
+    tags = [tag.strip() for tag in tag_line.group(1).split("*")]
 
     with open(fname, "w") as f:
         for idx, line in enumerate(lines):
