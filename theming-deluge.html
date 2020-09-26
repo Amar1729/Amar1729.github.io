@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>theming deluge</title>
+  <link rel="stylesheet" href="css/gruvbox-dark.css"><link rel="stylesheet" href="css/hack.css">
+
+  <meta property="og:url" content="https://amar1729.github.io/theming-deluge.html"/>
+  <meta property="og:title" content="theming deluge"/>
+  <meta property="og:description" content="dark themes in .Apps? sign me up"/>
+  <meta property="og:site_name" content="amar1729.github.io"/>
+</head>
+<body class="container hack gruvbox-dark">
+<p><a href="https://amar1729.github.io/">homepage</a> - <a href="./tags.html">tags</a> - <a href="https://github.com/Amar1729">github</a> - <a href="https://github.com/Amar1729/Amar1729.github.io">site code</a></p>
+<h1 id="theming-deluge">Theming Deluge</h1>
+<p><em>Dec 08 2019</em></p>
+<p>dark themes in .Apps? sign me up</p>
+<p>While using a system-wide theme between apps is easy on Linux via gtk, it&#39;s a little tough on Mac. Generally, apps written for OSX use styles similar to Mac apps for consistency. When an app doesn&#39;t do this you&#39;re stuck with using it as is - unless you&#39;re using an app which supports GTK on Linux, in which case you might just be able to find its gtkrc and edit it by hand.</p>
+<p>If you&#39;ve installed Deluge with MacPorts as the wiki suggests, you can set the theme name by <a href="editing the MacPorts `gtk-2.0/gtkrc`">https://dev.deluge-torrent.org/wiki/Installing/MacOSX</a>.</p>
+<p>Otherwise, Mac apps generally live in <code>/Applications</code>, and are directories suffixed by <code>.app</code> (that&#39;s right, you can actually cd into applications). Applications have a certain file structure, which generally looks like this:</p>
+<pre><code>Deluge.app
+└── Contents/
+    ├── Info.plist
+    ├── MacOS/
+    ├── PkgInfo
+    └── Resources/
+</code></pre><p>For most apps, static resources are usually kept in <code>Resources/</code> (obviously) and Deluge has a themes directory it reads from here:</p>
+<pre><code>/Applications/Deluge.app/Contents/Resources/share/themes/
+</code></pre><p>I used the <a href="https://github.com/jpfleury/clearlooks-phenix/tree/master/gtk-2.0">clearlooks gtk theme</a> as a reference, but a <code>Custom</code> theme can be made that Deluge.app will read from on startup:</p>
+<pre><code>/Applications/Deluge.app/Contents/Resources/share/themes/Custom/gtk-2.0/gtkrc
+</code></pre><p>I&#39;ve uploaded the gtkrc I&#39;m using <a href="https://gist.github.com/Amar1729/3bd55a0a132c83d945298c3d67fbee9a">as a GitHub gist</a>. The main difference between it and the other gtkrcs is the <code>gtk-color-scheme</code> attribute, which I updated to use colors based off of <a href="https://github.com/morhetz/gruvbox">Gruvbox</a>:</p>
+<pre><code>gtk-color-scheme = &quot;base_color:#282828\nfg_color:#ebdbb2\ntooltip_fg_color:#bdae93\nselected_bg_color:#458588\nselected_fg_color:#282828\ntext_color:#928374\nbg_color:#3c3836\ntooltip_bg_color:#fabd2f&quot;
+</code></pre><p>And that&#39;s about it! Now, I have a real dark theme on Mac&#39;s Deluge.app.</p>
+<p><img src="images/deluge-queued.png" alt="deluge-shot0"><br><img src="images/deluge-seeding.png" alt="deluge-shot1"></p>
+<hr>
+<p>~ tags : <a href="./tag-ricing.html">#ricing</a></p></body>
+</html>
