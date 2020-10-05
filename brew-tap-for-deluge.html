@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>brew tap for deluge</title>
+  <link rel="stylesheet" href="css/gruvbox-dark.css"><link rel="stylesheet" href="css/hack.css">
+
+  <!-- code highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/gruvbox-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <meta property="og:url" content="https://amar1729.github.io/brew-tap-for-deluge.html"/>
+  <meta property="og:title" content="writing a brew tap for deluge 2.0"/>
+  <meta property="og:description" content="building pip packages that depend on system dependencies, but WITHOUT a package manager? this is insane talk"/>
+  <meta property="og:site_name" content="amar1729.github.io"/>
+</head>
+<body class="container hack gruvbox-dark">
+<p><a href="https://amar1729.github.io/">homepage</a> - <a href="./tags.html">tags</a> - <a href="https://github.com/Amar1729">github</a> - <a href="https://github.com/Amar1729/Amar1729.github.io">site code</a></p>
+<h1 id="writing-a-brew-tap-for-deluge-2-0">Writing a Brew Tap for Deluge 2.0</h1>
+<p><em>Oct 03 2020</em></p>
+<p>I use <a href="https://deluge-torrent.org/">Deluge</a> for torrenting right now. It runs as a daemon on Linux clients, and the GTK interface can act as a thin client to connect to running daemons. Currently, 2.0 is in beta (so I have it installed on Arch), but the Deluge 2.0 GTK client doesn&#39;t have an official Mac or Windows build yet. There are instructions for building it, so I decided to throw together a Homebrew formula to make everything &quot;easier&quot; ...</p>
+<p>The end result of this post can be found <a href="https://github.com/Amar1729/homebrew-deluge-meta">on my github repo</a>.</p>
+<h2 id="aside">Aside</h2>
+<h3 id="reference">Reference</h3>
+<p>While writing a formula, it can helpful to reference <code>homebrew-core</code>&#39;s formulae (under <code>$(brew --repository)/Library/Taps/homebrew/homebrew-core/Formula</code>), and Homebrew&#39;s output path (<code>$(brew --prefix)/opt</code>) which contains symlinks to the formulae you have installed. When testing formulae I usually take a look at the relevant output directories (in this case, <code>/usr/local/opt/deluge-meta/</code>) to make sure I have everything the formula should provide.</p>
+<h3 id="brew-verbose">Brew Verbose</h3>
+<p>When testing new or complex rewrites of formulae, <code>brew install --verbose</code> is helpful but can generate a lot of output. Using a tool such as <code>tmux</code> helps to preserve and search the scrollback lines that are output during the build.</p>
+<h2 id="motivation">Motivation</h2>
+<p>The <a href="https://deluge.readthedocs.io/en/latest/intro/01-install.html">deluge documentation</a> indicates that a few Homebrew packages are required for <code>deluge-gtk</code> to run.  Installing each of these separately with Homebrew would not preserve information that they are dependencies. Additionally, deluge is installed via <code>pip</code>, so we won&#39;t be able to use <code>brew</code> to find out rdependencies of the things we install. Homebrew supports writing formula for packages that are installable via pip, especially when they are command-line tools rather than libraries. So, we&#39;ll write a Homebrew formula for Deluge 2.0 - this will help to sandbox the installation, as well as keeping various dependencies marked as &quot;dependencies&quot; of our <code>deluge-meta</code> formula <a href="#footnotes">[1]</a>.</p>
+<p>To get started, let&#39;s run <code>brew tap-new amar1729/deluge-meta</code>, which will create a new tap directory under Homebrew&#39;s cellar with associated files created for you (on my setup, this is <code>/usr/local/Homebrew/Library/Taps/amar1729/homebrew-deluge-meta</code>).</p>
+<h2 id="first-build">First Build</h2>
+<p>I used the Deluge install doc page and <a href="https://forum.deluge-torrent.org/viewtopic.php?t=55393&amp;start=10">this forum post</a> to put together a list of dependencies:</p>
+<ul>
+<li><code>adwaita-icon-theme</code></li>
+<li><code>gettext</code> (the documentation mentions <code>link</code>ing this)</li>
+<li><code>gtk+3</code></li>
+<li><code>libtorrent-rasterbar</code></li>
+<li><code>pygobject3</code></li>
+</ul>
+<p>For the python <code>deluge</code> module itself, I referenced the <a href="https://github.com/Homebrew/homebrew-core/blob/9591758fd8a565abf98d13ffd87c66e5e12ad579/Formula/pipx.rb">Homebrew formula for <code>pipx</code></a> (a python CLI tool), to make a simple start to this formula. Then I used <code>homebrew-pypi-poet</code> (see the Homebrew reference for Python Authors<a href="#footnotes">[2]</a>) to create the required resource stanzas for the <code>deluge</code> pip package.</p>
+<p>The required stanzas look something like this:</p>
+<pre><code class="lang-ruby">  resource &quot;attrs&quot; do
+    url &quot;https://files.pythonhosted.org/packages/81/d0/641b698d05f0eaea4df4f9cebaff573d7a5276228ef6b7541240fe02f3ad/attrs-20.2.0.tar.gz&quot;
+    sha256 &quot;26b54ddbbb9ee1d34d5d3668dd37d6cf74990ab23c828c2888dccdceee395594&quot;
+  end
+
+  resource &quot;Automat&quot; do
+    url &quot;https://files.pythonhosted.org/packages/80/c5/82c63bad570f4ef745cc5c2f0713c8eddcd07153b4bee7f72a8dc9f9384b/Automat-20.2.0.tar.gz&quot;
+    sha256 &quot;7979803c74610e11ef0c0d68a2942b152df52da55336e0c9d58daf1831cbdf33&quot;
+  end
+</code></pre>
+<p>After putting this all together, we have a formula that looks like this:</p>
+<pre><code class="lang-ruby">class DelugeMeta &lt; Formula
+
+  desc &quot;Meta package for Deluge 2.0 dependencies&quot;
+  homepage &quot;https://deluge-torrent.org/&quot;
+  url &quot;https://files.pythonhosted.org/packages/58/9c/a612e85487c055d88da0f975a81cabf5d04dfb87a2aace2ae5946115113f/deluge-2.0.3.tar.gz&quot;
+  sha256 &quot;bd26950f417de2a5b26827d989935a30e770f880c22cb59ca69f781cdc9a14c9&quot;
+  license &quot;GPL-3.0&quot;
+
+  depends_on &quot;zlib&quot; =&gt; :build
+  depends_on &quot;adwaita-icon-theme&quot;
+  depends_on &quot;gettext&quot;
+  depends_on &quot;gtk+3&quot;
+  depends_on &quot;libtorrent-rasterbar&quot;
+  depends_on &quot;pygobject3&quot;
+
+  # resource stanzas snipped for brevity
+
+  def install
+    xy = Language::Python.major_minor_version &quot;python3&quot;
+    ENV.prepend_create_path &quot;PYTHONPATH&quot;, libexec/&quot;lib/python#{xy}/site-packages&quot;
+
+    resources.each do |r|
+      r.stage do
+        system &quot;python3&quot;, *Language::Python.setup_install_args(libexec)
+      end
+    end
+
+    system &quot;python3&quot;, *Language::Python.setup_install_args(libexec)
+
+    (bin/&quot;deluge-gtk&quot;).write_env_script(libexec/&quot;bin/deluge-gtk&quot;, PYTHONPATH: ENV[&quot;PYTHONPATH&quot;])
+  end
+end
+</code></pre>
+<p>Now we can try building it. We&#39;ll use <code>--only-dependencies</code> first to pull in the dependencies first, and then use <code>--verbose</code> to get all the output while Homebrew builds the package.</p>
+<pre><code class="lang-bash">brew install --only-dependencies deluge-meta
+brew install --verbose --build-from-source deluge-meta
+</code></pre>
+<p>The first time I tried this, I had to <code>brew unlink libtorrent-rakshasa</code> (because I have <code>rtorrent</code> installed as well), and I had to fill out the proper <code>sha256</code> of the pypi deluge tarball. The output will helpfully tell you if there&#39;s a mismatch or empty sha256 in your formula, at which point you can simply copy/paste it in.</p>
+<h2 id="fixing-the-build">Fixing the Build</h2>
+<p>After our first attempt, I re-ran the build and found that Pillow (a python module) fails to build since it depends on <code>zlib</code>:</p>
+<pre><code>The headers or library files could not be found for zlib,
+a required dependency when compiling Pillow from source.
+
+Please see the install instructions at:
+   https://pillow.readthedocs.io/en/latest/installation.html
+</code></pre><p>Following what Pillow tells us, just add <code>zlib</code> as a build dependency:</p>
+<pre><code class="lang-ruby">  depends_on &quot;zlib&quot; =&gt; :build
+</code></pre>
+<p>Now, running the build again works! Woo! Let&#39;s check it out by running <code>deluge-gtk</code>:</p>
+<p><img src="images/deluge-gtk.png" alt="deluge-gtk"></p>
+<p>In the terminal I still get an error about Deluge being seemingly unable to use <code>gettext</code> properly:</p>
+<pre><code class="lang-bash">Unable to initialize gettext/locale!
+&#39;ngettext&#39;
+Traceback (most recent call last):
+  File &quot;/usr/local/Cellar/deluge-meta/2.0.3/libexec/lib/python3.8/site-packages/deluge/i18n/util.py&quot;, line 118, in setup_translation
+    builtins.__dict__[&#39;_n&#39;] = builtins.__dict__[&#39;ngettext&#39;]
+KeyError: &#39;ngettext&#39;
+</code></pre>
+<p>Not sure if this is a problem with a build, or supposed to happen currently (since Deluge 2.0 only supports English right now), or the environment (maybe locales are weird on MacOS?). Whatever, it works.</p>
+<h2 id="all-the-env-scripts">All the Env Scripts</h2>
+<p>Initially, I wanted to make sure that <code>deluge-gtk</code> (the GUI) was working, but once we get the formula building and running, we may as well update the formula to write out all the <code>deluge*</code> scripts provided by Deluge. I changed the hard-coded <code>deluge-gtk</code> env_script line to one that works on all the targets:</p>
+<pre><code class="lang-ruby">    # (bin/&quot;deluge-gtk&quot;).write_env_script(libexec/&quot;bin/deluge-gtk&quot;, PYTHONPATH: ENV[&quot;PYTHONPATH&quot;])
+    %w[deluge deluge-console deluge-gtk deluge-web deluged].each do |cmd|
+      (bin/cmd).write_env_script(libexec/&quot;bin/#{cmd}&quot;, PYTHONPATH: ENV[&quot;PYTHONPATH&quot;])
+    end
+</code></pre>
+<h2 id="cleaning-up">Cleaning Up</h2>
+<h3 id="use-a-test-block">Use a <code>test</code> Block</h3>
+<p>This formula doesn&#39;t have a <code>test</code> block right now, although those can be helpful for CI to quickly find issues on updates. I know <code>deluge-gtk</code> works for me right now, but I may add this later on if the <code>deluge</code> pip module receives more updates without a MacOS .App build in sight.</p>
+<h3 id="attempting-virtualenv_install_with_resources">Attempting <code>virtualenv_install_with_resources</code></h3>
+<p>According to Homebrew documentation<a href="#footnotes">[2]</a>, most Python formulae should use <code>virtualenv_install_with_resources</code> now, but when I tried to use this method I ran into a few issues:</p>
+<pre><code>Error: An exception occurred within a child process:
+  FormulaUnknownPythonError: The version of Python to use with the virtualenv in the `amar1729/deluge-meta/deluge-meta` formula
+cannot be guessed automatically because a recognised Python dependency could not be found.
+
+If you are using a non-standard Python depedency, please add `:using =&gt; &quot;python@x.y&quot;` to
+`virtualenv_install_with_resources` to resolve the issue manually.
+</code></pre><p>When I tried adding a <code>:using =&gt; &quot;python@3.8&quot;</code> line, I ran into an issue concerning missing headers while building Pillow. Figured I&#39;d look at it later, since I have a working build now anyway.</p>
+<h3 id="style-style-style">style style style</h3>
+<p>Before you push, it can be helpful to run <code>brew style --fix &lt;formula&gt;.rb</code> to lint and fix issues in your formula. While not extremely important for taps, this is a necessary step if you ever want to submit a PR to homebrew-core.</p>
+<h2 id="bonus-theming">Bonus: Theming</h2>
+<p>This wouldn&#39;t be the blog it is without a little nod to useless ricing!</p>
+<p>The deluge-gtk GUI looks fine, but we want dark mode everything, right? My <a href="https://amar1729.github.io/theming-deluge.html">last post on theming Deluge</a> concerned Deluge 1.3, but now we&#39;re running the beta Deluge 2.0. In the interim, Deluge has switched from GTK 2.0 to GTK 3.0, and setting the theme for the two is slightly different. The <a href="https://wiki.archlinux.org/index.php/GTK#Themes">arch wiki</a> tells us that GTK 2 expects <code>GTK2_RC_FILES</code> to be set to a <code>gtkrc</code>, while GTK 3 expects <code>GTK_THEME</code> to name your theme.</p>
+<p>On MacOS, some formula seems to already have installed the Adwaita theme (<code>gtk+3</code> itself, since Adwaita is the default theme?), so we can actually launch Deluge like this:</p>
+<pre><code class="lang-bash">GTK_THEME=Adwaita:dark deluge-gtk
+</code></pre>
+<p><img src="images/deluge-gtk-adwaita.png" alt="deluge-gtk-adwaita"></p>
+<p>If you&#39;ve been following along, you know I like <a href="https://github.com/morhetz/gruvbox">gruvbox colors</a>, so I found a <a href="https://github.com/3ximus/gruvbox-gtk">gruvbox GTK theme</a> and clone it into <code>~/.themes</code>. Then, I created a config for GTK 3:</p>
+<pre><code># $XDG_CONFIG_HOME/gtk-3.0/settings.ini
+# ^ this is typically ~/.config/gtk-3.0/settings.ini
+
+[Settings]
+gtk-theme-name = gruvbox-gtk
+# ^ this gruvbox theme is dark by default
+# otherwise, you would use the following:
+# gtk-application-prefer-dark-theme = true
+</code></pre><p>And running <code>deluge-gtk</code> now gives us nice gruvbox colors (consistent with this site!):</p>
+<p><img src="images/deluge-gtk-gruvbox.png" alt="deluge-gtk-gruvbox"></p>
+<h2 id="footnotes">footnotes</h2>
+<ol>
+<li><p>Homebrew formulae management can be a less powerful compared to aspects of other package managers. For example, there&#39;s no straightforward way to recursively uninstall a package (use <a href="https://github.com/beeftornado/homebrew-rmtree">homebrew-rmtree</a> to do this). There&#39;s also no way to install a package while marking it as a dependency (e.g. <code>pacman -S --asdeps</code>) which is helpful to have when you later want to remove all orphaned dependencies from your system.</p>
+</li>
+<li><p><a href="https://docs.brew.sh/Python-for-Formula-Authors">https://docs.brew.sh/Python-for-Formula-Authors</a></p>
+</li>
+</ol>
+<hr>
+<p>~ tags : <a href="./tag-brew.html">#brew</a> * <a href="./tag-python.html">#python</a> * <a href="./tag-ricing.html">#ricing</a></p></body>
+</html>
