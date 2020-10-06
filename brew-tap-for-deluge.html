@@ -51,14 +51,12 @@
 </code></pre>
 <p>After putting this all together, we have a formula that looks like this:</p>
 <pre><code class="lang-ruby">class DelugeMeta &lt; Formula
-
   desc &quot;Meta package for Deluge 2.0 dependencies&quot;
   homepage &quot;https://deluge-torrent.org/&quot;
   url &quot;https://files.pythonhosted.org/packages/58/9c/a612e85487c055d88da0f975a81cabf5d04dfb87a2aace2ae5946115113f/deluge-2.0.3.tar.gz&quot;
-  sha256 &quot;bd26950f417de2a5b26827d989935a30e770f880c22cb59ca69f781cdc9a14c9&quot;
+  sha256 &quot;&quot;
   license &quot;GPL-3.0&quot;
 
-  depends_on &quot;zlib&quot; =&gt; :build
   depends_on &quot;adwaita-icon-theme&quot;
   depends_on &quot;gettext&quot;
   depends_on &quot;gtk+3&quot;
@@ -83,6 +81,10 @@
   end
 end
 </code></pre>
+<p>The first block of lines are required for every Homebrew formula, and include basic metadata about the package. Note that I haven&#39;t filled out the <code>sha256</code> attribute yet - it&#39;s required, but I haven&#39;t downloaded the URL to my machine yet. You could do this in advance, and run <code>sha256sum</code> yourself; or you could wait for Homebrew to error and tell you the calculated SHA256, which is a little easier.</p>
+<p>The next few lines describe this package&#39;s dependencies, which we&#39;ve pulled from Deluge&#39;s install page and found the proper names for by using <code>brew search</code>.</p>
+<p>As long as you have <code>resource</code> blocks, we&#39;ll now go through the installation for Python packages. By convention, Homebrew will install a Python environment into a formula&#39;s <code>libexec</code> directory if it requires any Python modules, and we add that directory to the <code>PYTHONPATH</code> for this formula only. We then iterate over each resource, installing it into the formula&#39;s site-packages, and then call <code>setup_install_args</code> one last time to install the <code>deluge</code> Python module after its dependencies have been installed.</p>
+<p>Finally, we&#39;ll write an &quot;env script&quot; into the formula <code>bin/</code> directory - if you take a look at these scripts, they are typically bash scripts that set certain environment variables (<code>PYTHONPATH</code> in this case) and then call a certain target executable (here, <code>libexec/bin/deluge-gtk</code>). This allows Homebrew to isolate an environment into each formula&#39;s own directory and set variables if required.</p>
 <p>Now we can try building it. We&#39;ll use <code>--only-dependencies</code> first to pull in the dependencies first, and then use <code>--verbose</code> to get all the output while Homebrew builds the package.</p>
 <pre><code class="lang-bash">brew install --only-dependencies deluge-meta
 brew install --verbose --build-from-source deluge-meta
@@ -137,7 +139,7 @@ If you are using a non-standard Python depedency, please add `:using =&gt; &quot
 <pre><code class="lang-bash">GTK_THEME=Adwaita:dark deluge-gtk
 </code></pre>
 <p><img src="images/deluge-gtk-adwaita.png" alt="deluge-gtk-adwaita"></p>
-<p>If you&#39;ve been following along, you know I like <a href="https://github.com/morhetz/gruvbox">gruvbox colors</a>, so I found a <a href="https://github.com/3ximus/gruvbox-gtk">gruvbox GTK theme</a> and clone it into <code>~/.themes</code>. Then, I created a config for GTK 3:</p>
+<p>If you&#39;ve been following along, you know I like <a href="https://github.com/morhetz/gruvbox">gruvbox colors</a>, so I found a <a href="https://github.com/3ximus/gruvbox-gtk">gruvbox GTK theme</a> and cloned it into <code>~/.themes</code>. Then, I created a config for GTK 3:</p>
 <pre><code># $XDG_CONFIG_HOME/gtk-3.0/settings.ini
 # ^ this is typically ~/.config/gtk-3.0/settings.ini
 
