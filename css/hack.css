@@ -344,6 +344,7 @@ p {
 }
 .container img {
     max-width: 90%;
+    max-height: 400px;
     height: auto;
     margin-left: 5%;
 }
