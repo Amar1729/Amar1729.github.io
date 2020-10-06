@@ -9,7 +9,7 @@
 
 LINK_TAG='<link rel="stylesheet" href="'
 
-main () {
+_markdown_convert () {
     set -e
 
     fname="$1"
@@ -37,6 +37,27 @@ main () {
 ${site_header}
 " \
         > "$out"
+
+    extra_headers "$out"
+
+    echo "$out"
+}
+
+main () {
+    set -e
+
+    html_result=$(_markdown_convert "$@")
+
+    if grep -F "${html_result/.html/.md}" .posts; then
+        echo "Post already in .posts: exiting before tag/index regen."
+        return
+    fi
+
+    echo "$1" >> .posts
+
+    venv/bin/python tag_gen.py  "$html_result"
+
+    venv/bin/python main.py
 }
 
 main "$@"
