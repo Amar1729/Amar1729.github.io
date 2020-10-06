@@ -343,9 +343,9 @@ p {
   padding: 0 1rem;
 }
 .container img {
-    max-width: 50%;
+    max-width: 90%;
     height: auto;
-    margin-left: 25%;
+    margin-left: 5%;
 }
 .inner {
   padding: 1rem;
