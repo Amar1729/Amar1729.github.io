@@ -1,8 +1,10 @@
 # Adding Custom Language Support To neovim tree-sitter
 
+Would it even be a real IDE if you didn't have to manually add your own language support?
+
 *Nov 28 2022*
 
-## Introduction
+# Introduction
 
 If you haven't been following recent changes in IDE-land, you may have missed the landing of Tree-Sitter into the [popular fork of vim, neovim](https://neovim.io/) (as of v0.5). [Tree-sitter](https://github.com/tree-sitter/tree-sitter) is "an incremental parsing system for programming tools" - what that means for an IDE such as neovim is more robust, much faster parsing of a buffer's text into a language specific AST (abstract syntax tree). This AST can then be used by a broad range of tools or features - faster syntax highlighting, language-aware movement, arbitrary new textobjects - that improve the power with which a programmer can read and interact with their code.
 
@@ -10,14 +12,14 @@ Aside - since tree-sitter itself is IDE-agnostic, [nvim-treesitter](https://gith
 
 There are a ton of blog posts and video tutorials describing how to set up tree-sitter in neovim from scratch, both from when this [feature landed](https://blog.pabuisson.com/2022/08/neovim-modern-features-treesitter-and-lsp/) [in 0.5](https://blog.inkdrop.app/how-to-set-up-neovim-0-5-modern-plugins-lsp-treesitter-etc-542c3d9c9887) and [more recently](https://roobert.github.io/2022/12/03/Extending-Neovim/). The purpose of this blog post, however, is to detail the steps to add query support for language that isn't yet supported by nvim-treesitter.
 
-## Using an Unsupported Language
+# Using an Unsupported Language
 
 Depending on the popularity and complexity of a language, it may take a long time to [add support in tree-sitter](https://github.com/tree-sitter/tree-sitter/issues/693) or to make sure that language is properly supported in nvim-treesitter (see the [tracking issue for language support](https://github.com/nvim-treesitter/nvim-treesitter/issues/2282)). If you want to use an as-yet-unsupported language, hopefully you don't have to implement a full parser yourself - it may be as simple as finding an existing parser and defining some queries yourself.
 
 In fact, `nvim-treesitter-textobjects` tells us [how to do just that](https://github.com/nvim-treesitter/nvim-treesitter-textobjects#overriding-or-extending-textobjects)! The readme references the `nvim-treesitter` repo, which also specifies [how to add queries](https://github.com/nvim-treesitter/nvim-treesitter#adding-queries).
 
 
-### Finding And Installing a Parser
+## Finding And Installing a Parser
 
 Say I want to add support to neovim for [VHDL](https://en.wikipedia.org/wiki/VHDL). The tracking issue in nvim-treesitter has a [comment which notes VHDL as yet-to-be-implemented](https://github.com/nvim-treesitter/nvim-treesitter/issues/2282#issuecomment-1124504754), and from there we find our VHDL parser.
 
@@ -110,9 +112,9 @@ And now, we ensure we have keymaps for `select`ing a textobject called `@class.i
       },
 ```
 
-And now, we can simply issue `vic` to select an entire VHDL `entity`!
+And now, we can simply issue `vic` to "v"isually select "i"nside VHDL `entity` ("c"lass)!
 
-### Finding Arbitrary Nodes
+# Finding Arbitrary Nodes
 
 If you're having a trouble finding specific nodes or capture expressions to use, you can check out the [`nvim-treesitter/playground`](https://github.com/nvim-treesitter/playground) plugin - it can display the parsed AST for text in a buffer as well as let you test capture expressions.
 
