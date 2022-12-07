@@ -8,3 +8,4 @@ markdown/styling-firefox.md
 markdown/tweaking-unix-pass.md
 markdown/theming-deluge.md
 markdown/brew-tap-for-deluge.md
+markdown/extending-nvim-treesitter-queries.md

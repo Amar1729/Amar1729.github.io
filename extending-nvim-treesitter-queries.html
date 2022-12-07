@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>extending nvim treesitter queries</title>
+  <link rel="stylesheet" href="css/gruvbox-dark.css"><link rel="stylesheet" href="css/hack.css">
+</head>
+<body class="container hack gruvbox-dark">
+<p><a href="https://amar1729.github.io/">homepage</a> - <a href="./tags.html">tags</a> - <a href="https://github.com/Amar1729">github</a> - <a href="https://github.com/Amar1729/Amar1729.github.io">site code</a></p>
+<h1 id="adding-custom-language-support-to-neovim-tree-sitter">Adding Custom Language Support To neovim tree-sitter</h1>
+<p>Would it even be a real IDE if you didn&#39;t have to manually add your own language support?</p>
+<p><em>Nov 28 2022</em></p>
+<h1 id="introduction">Introduction</h1>
+<p>If you haven&#39;t been following recent changes in IDE-land, you may have missed the landing of Tree-Sitter into the <a href="https://neovim.io/">popular fork of vim, neovim</a> (as of v0.5). <a href="https://github.com/tree-sitter/tree-sitter">Tree-sitter</a> is &quot;an incremental parsing system for programming tools&quot; - what that means for an IDE such as neovim is more robust, much faster parsing of a buffer&#39;s text into a language specific AST (abstract syntax tree). This AST can then be used by a broad range of tools or features - faster syntax highlighting, language-aware movement, arbitrary new textobjects - that improve the power with which a programmer can read and interact with their code.</p>
+<p>Aside - since tree-sitter itself is IDE-agnostic, <a href="https://github.com/nvim-treesitter/nvim-treesitter">nvim-treesitter</a> is the plugin used to manage and provide tree-sitter support. A nice benefit of this is that tree-sitter can be integrated in to any IDE, not just neovim. Thus, improvements to language queries or grammars can be made by anybody with language-specific knowledge, rather than the old way of, for example, python syntax colors in vim requiring somebody to know both Python and how to write a vim highlight file.</p>
+<p>There are a ton of blog posts and video tutorials describing how to set up tree-sitter in neovim from scratch, both from when this <a href="https://blog.pabuisson.com/2022/08/neovim-modern-features-treesitter-and-lsp/">feature landed</a> <a href="https://blog.inkdrop.app/how-to-set-up-neovim-0-5-modern-plugins-lsp-treesitter-etc-542c3d9c9887">in 0.5</a> and <a href="https://roobert.github.io/2022/12/03/Extending-Neovim/">more recently</a>. The purpose of this blog post, however, is to detail the steps to add query support for language that isn&#39;t yet supported by nvim-treesitter.</p>
+<h1 id="using-an-unsupported-language">Using an Unsupported Language</h1>
+<p>Depending on the popularity and complexity of a language, it may take a long time to <a href="https://github.com/tree-sitter/tree-sitter/issues/693">add support in tree-sitter</a> or to make sure that language is properly supported in nvim-treesitter (see the <a href="https://github.com/nvim-treesitter/nvim-treesitter/issues/2282">tracking issue for language support</a>). If you want to use an as-yet-unsupported language, hopefully you don&#39;t have to implement a full parser yourself - it may be as simple as finding an existing parser and defining some queries yourself.</p>
+<p>In fact, <code>nvim-treesitter-textobjects</code> tells us <a href="https://github.com/nvim-treesitter/nvim-treesitter-textobjects#overriding-or-extending-textobjects">how to do just that</a>! The readme references the <code>nvim-treesitter</code> repo, which also specifies <a href="https://github.com/nvim-treesitter/nvim-treesitter#adding-queries">how to add queries</a>.</p>
+<h2 id="finding-and-installing-a-parser">Finding And Installing a Parser</h2>
+<p>Say I want to add support to neovim for <a href="https://en.wikipedia.org/wiki/VHDL">VHDL</a>. The tracking issue in nvim-treesitter has a <a href="https://github.com/nvim-treesitter/nvim-treesitter/issues/2282#issuecomment-1124504754">comment which notes VHDL as yet-to-be-implemented</a>, and from there we find our VHDL parser.</p>
+<p>To install it, we&#39;ll follow nvim-treesitter&#39;s <a href="https://github.com/nvim-treesitter/nvim-treesitter#adding-parsers">instructions</a>:</p>
+<pre><code class="lang-bash"># clone the project (can clone it to anywhere)
+$ git clone https://github.com/alemuller/tree-sitter-vhdl ~/.config/nvim/tree-sitter/tree-sitter-vhdl
+
+# run tree-sitter generate to build it
+$ cd ~/.config/nvim/tree-sitter/tree-sitter-vhdl
+$ tree-sitter generate
+</code></pre>
+<p>And then, we&#39;ll install it in our <code>init.lua</code> (if you&#39;re still using <code>init.vim</code>, you can add lua snippets in vimscript by surrounding the lua code with <code>lua &lt;&lt;EOF</code> and <code>EOF</code>):</p>
+<pre><code class="lang-lua">local parser_config = require &quot;nvim-treesitter.parsers&quot;.get_parser_configs()
+
+parser_config.vhdl = {
+    install_info = {
+        url = &quot;~/.config/nvim/tree-sitter/tree-sitter-vhdl&quot;, -- local path or git repo
+        -- this is the file built by tree-sitter generate
+        files = {&quot;src/parser.c&quot;},
+        -- optional entries:
+        branch = &quot;main&quot;, -- default branch in case of git repo if different from master
+        generate_requires_npm = false, -- if stand-alone parser without npm dependencies
+        requires_generate_from_grammar = false, -- if folder contains pre-generated src/parser.c
+    },
+    filetype = &quot;vhdl&quot;, -- if filetype does not match the parser name
+}
+</code></pre>
+<p>Then, start nvim again and run <code>:TSInstall vhdl</code>. If that works, you can open a VHDL file and see the results for any tree-sitter modules you have enabled (e.g. highlight, selection). In fact, I tested this by checking whether incremental-selection (provided by tree-sitter) worked - open a VHDL file (snippet below), and issue your keybinding for initializing and incrementing a selection. You should see your visual selection expand incrementally, using the power of tree-sitter!</p>
+<pre><code class="lang-vhdl">entity axis_file_sink is
+    generic (
+        AXIS_TDATA_LEN : natural := 32; -- AXIS tdata output length
+        FIlENAME       : string  := &quot;&quot;
+    );
+    port (
+        ---------------------------------------
+        --
+        -- testing different things
+        clk                     : in std_logic; -- Testing embedded
+        rst                     : in std_logic;
+        s_axis_file_sink_tvalid : in std_logic;
+        s_axis_file_sink_tready : out std_logic;
+        s_axis_file_sink_tdata  : in std_logic_vector(AXIS_TDATA_LEN - 1 downto 0); -- more comments
+        s_axis_file_sink_tlast  : in std_logic
+    );
+end entity;
+</code></pre>
+<h2 id="using-text-objects">Using Text Objects</h2>
+<p>Dealing with text objects is one of the great advantages of vim. Issuing <code>yi)</code> can &quot;y&quot;ank the text object corresponding to text &quot;i&quot;nside a pair of parens, <code>ca&quot;</code> can &quot;c&quot;hange the text object &quot;a&quot;round the surrounding double-quotes, and more. There are numerous plugins out there to extend the default textobjects provided by vim, and tree-sitter and tree-sitter-textobjects together provide several default language-aware objects. Now you can carry out powerful manipulations like jumping by structs, or swapping a function argument with the previous one - all with the configurable keybindings and without having to go find a language-specific plugin.</p>
+<p>So what if we want to select an <code>entity</code> in VHDL? Simple - we just define a capture like this, in <code>queries/vhdl/textobjects.scm</code>:</p>
+<pre><code class="lang-scm">; extends
+(entity_declaration) @class.inner
+(entity_declaration) @class.outer
+</code></pre>
+<p>And now, we ensure we have keymaps for <code>select</code>ing a textobject called <code>@class.inner</code> and <code>@class.outer</code> in our <code>init.lua</code> (or <code>init.vim</code>). If you already have the textobjects module configured, you won&#39;t even have to change your configuration here!</p>
+<pre><code class="lang-lua">-- this table is generally declared inside the configs block:
+-- require&#39;nvim-treesitter.configs&#39;.setup {
+
+  -- provided by nvim-treesitter-textobjects plugin
+  textobjects = {
+      select = {
+          enable = true,
+
+          -- automatically jump forward to textobj
+          lookahead = true,
+
+          keymaps = {
+              -- other keymaps elided
+
+              -- note you can use any keybinding you like here
+              [&quot;ac&quot;] = &quot;@class.outer&quot;,
+              [&quot;ic&quot;] = &quot;@class.inner&quot;,
+          },
+      },
+</code></pre>
+<p>And now, we can simply issue <code>vic</code> to &quot;v&quot;isually select &quot;i&quot;nside VHDL <code>entity</code> (&quot;c&quot;lass)!</p>
+<h1 id="finding-arbitrary-nodes">Finding Arbitrary Nodes</h1>
+<p>If you&#39;re having a trouble finding specific nodes or capture expressions to use, you can check out the <a href="https://github.com/nvim-treesitter/playground"><code>nvim-treesitter/playground</code></a> plugin - it can display the parsed AST for text in a buffer as well as let you test capture expressions.</p>
+<p><img src="images/treesitter-playground.png" alt="images/treesitter-playground.png"></p>
+<hr>
+<p>~ tags : <a href="./tag-neovim.html">#neovim</a></p></body>
+</html>
